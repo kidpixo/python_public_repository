@@ -80,6 +80,5 @@ The result is a shapefile with 2 MultiPolygon, each with an unique value of the 
 [Cookbook]: http://pcjericks.github.io/py
 [gdal_polygonize]: http://www.gdal.org/gdal_polygonize.html
 
-
-  [1]: https://raw.githubusercontent.com/kidpixo/python_public_repository/master/GDAL_small.jpg
-  [2]: https://raw.githubusercontent.com/kidpixo/python_public_repository/master/GDAL_merged_shp.jpg
+  [1]: https://raw.githubusercontent.com/kidpixo/python_public_repository/master/images/GDAL_small.jpg
+  [2]: https://raw.githubusercontent.com/kidpixo/python_public_repository/master/images/GDAL_merged_shp.jpg
