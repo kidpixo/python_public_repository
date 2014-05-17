@@ -150,7 +150,7 @@ classes_attributes = { 'names' : ['attr_'+str(i) for i in range(attributes_n)]}
 for i in range(classes.size):
    classes_attributes[classes[i]] = attributes_values[i,:]
    
-# Some Fake GeoTIFF georereference
+# Some Fake Raster georereference
 img_extent = (-180, 180, -90, 90)
 xmin,xmax,ymin,ymax = img_extent
 nrows,ncols = plot_matrix.shape

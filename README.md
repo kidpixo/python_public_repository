@@ -1,39 +1,77 @@
-This repository collect some of my public python.
+This repository collects some of my public python.
+
+## array_to_shapefile - convert 2D array to shapefile
 
 The `array_to_shapefile.py` aim is to convert 2D numpy array to shapefile, collecting pixels sharing the same values in the same MultiPolygon.
-In the example,the matrix results from a classification, so the numbers have a meaning.
 
-Here an example of dummy data from [Raster Layers — Python GDAL/OGR Cookbook 1.0 documentation][Cookbook]
+#### Prerequisites 
 
-    plot_matrix =  np.array([[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-   	                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-   	                   [ 0, 1, 1, 1, 1, 0, 2, 2, 2, 2, 0, 1, 1, 1, 0, 2, 0, 0, 0],
-   	                   [ 0, 1, 0, 0, 0, 0, 0, 2, 0, 2, 0, 1, 0, 1, 0, 2, 0, 0, 0],
-   	                   [ 0, 1, 0, 1, 1, 0, 0, 2, 0, 2, 0, 1, 1, 1, 0, 2, 0, 0, 0],
-   	                   [ 0, 1, 0, 0, 1, 0, 0, 2, 0, 2, 0, 1, 0, 1, 0, 2, 0, 0, 0],
-   	                   [ 0, 1, 1, 1, 1, 0, 2, 2, 2, 2, 0, 1, 0, 1, 0, 2, 2, 2, 0],
-   	                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-   	                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-   	                   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+	import numpy
+	from osgeo import gdal
+	from osgeo import ogr
+	from osgeo import osr
+	import os
 
 
+#### Example Data
 
-The data represent 2 disjoint region, with 2 different values of the classification (1 and 2) plus a background of "No Data" values, represented by 0s.
+In the example below, the matrix results from a classification, so the do numbers have a meaning: I can not simply smooth or interpolate the image for cosmetic reason without loosing information.
 
-My actual solutions steps :
+Here an example of dummy data from [Raster Layers — Python GDAL/OGR Cookbook 1.0 documentation][Cookbook], a 2D numpy array  representing the text 'GDAL'
 
-1. Create a GDAL Raster in memory an put the 2D numpy array in a band, defining the NoData value as 0 in this case.
+	np.array([[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+			  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+			  [ 0, 1, 1, 1, 1, 0, 2, 2, 2, 2, 0, 1, 1, 1, 0, 2, 0, 0, 0],
+			  [ 0, 1, 0, 0, 0, 0, 0, 2, 0, 2, 0, 1, 0, 1, 0, 2, 0, 0, 0],
+			  [ 0, 1, 0, 1, 1, 0, 0, 2, 0, 2, 0, 1, 1, 1, 0, 2, 0, 0, 0],
+			  [ 0, 1, 0, 0, 1, 0, 0, 2, 0, 2, 0, 1, 0, 1, 0, 2, 0, 0, 0],
+			  [ 0, 1, 1, 1, 1, 0, 2, 2, 2, 2, 0, 1, 0, 1, 0, 2, 2, 2, 0],
+			  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+			  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+			  [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
 
-![Show the data][1]
 
-2. Create a OGR vector layer in memory.
-3. Use [gdal_polygonize.py][gdal_polygonize] to convert to "vector polygons for all connected regions of pixels in the raster sharing a common pixel value" (see documentation). This produce 5 different polygons, for the 5 regions in my data.
 
-![Polygonized Raster, 5 classes][2]
+The data has 2 disjoint regions with 2 different labels (1 and 2) and a background of "No Data" values, the 0s.
 
-4. Create a OGR vector layer on disk.
+The data geographic information are controlled by
+   
+	# Some Fake Raster georereference
+	img_extent = (-180, 180, -90, 90)
+	xmin,xmax,ymin,ymax = img_extent
+	nrows,ncols = plot_matrix.shape
+	xres = (xmax-xmin)/float(ncols)
+	yres = (ymax-ymin)/float(nrows)
+	geotransform = (xmin,xres,0,ymax,0, -yres)
 
-5. Get produced shapefile from point 3. and aggregate the polygon sharing the same value in multi polygon collection, in my case there will be 2 MultiPolygon (0 represent no data in the original data).
+The projection is now fixed to `WGS 84` or `EPSG 4326` that I find comfortable (global in lat/lon), but I'm planning to pass a Proj.4 definition via `osr.SpatialReference().ImportFromProj4`, stay tuned. the projection Well-known text is 
+
+	GEOGCS["WGS 84",
+	    DATUM["WGS_1984",
+	        SPHEROID["WGS 84",6378137,298.257223563,
+	            AUTHORITY["EPSG","7030"]],
+	        AUTHORITY["EPSG","6326"]],
+	    PRIMEM["Greenwich",0,
+	        AUTHORITY["EPSG","8901"]],
+	    UNIT["degree",0.0174532925199433,
+	        AUTHORITY["EPSG","9122"]],
+	    AUTHORITY["EPSG","4326"]]
+
+
+## Script Steps 
+
+What the script does:
+
+- Create a GDAL Raster in memory an put the 2D numpy array in a band, defining the NoData value as 0 in this case.
+
+![The Data][1]
+
+- Create a OGR vector layer in memory.
+- Use [gdal_polygonize.py][gdal_polygonize] to convert to "vector polygons for all connected regions of pixels in the raster sharing a common pixel value" (see documentation). This produce 5 different polygons, for the 5 regions in my data.
+
+- Create a OGR vector layer on disk.
+
+- Get the `gdal_polygonize` results from the Vector Layer in Memory and aggregate the polygons sharing the same value in MultiPolygon collection: in my case there will be 2 MultiPolygon for the 2 original labels, 0 representing NoData.
 
 The result is a shapefile with 2 MultiPolygon, each with an unique value of the Field "class"
 
