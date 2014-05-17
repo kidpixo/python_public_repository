@@ -75,12 +75,11 @@ What the script does:
 
 The result is a shapefile with 2 MultiPolygon, each with an unique value of the Field "class"
 
-![Merged polygons, 2 classes ][3]
+![Merged polygons, 2 classes ][2]
 
 [Cookbook]: http://pcjericks.github.io/py
 [gdal_polygonize]: http://www.gdal.org/gdal_polygonize.html
 
 
-  [1]: http://i.stack.imgur.com/s6ms6.jpg
-  [2]: http://i.stack.imgur.com/qLlZU.jpg
-  [3]: http://i.stack.imgur.com/yJ8LT.jpg
+  [1]: https://raw.githubusercontent.com/kidpixo/python_public_repository/master/GDAL_small.jpg
+  [2]: https://raw.githubusercontent.com/kidpixo/python_public_repository/master/GDAL_merged_shp.jpg
